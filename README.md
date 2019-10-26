@@ -1,4 +1,11 @@
-# Hubot Jenkins Enhanced Plugin
+# Hubot Jenkins Connector
+
+Fork of hubot-jenkins-enhanced-improved
+
+Differences:
+ - Use of Jenkins public URL (in case jenkins server is in a private network)
+ - Slack: replies in thread
+ - Slack: send slack username and thread ts info to jenkins job 
 
 Jenkins integration for Hubot with multiple server support with the use of access tokens instead of password authentication.
 
@@ -7,8 +14,9 @@ Auth should be in the "user:access-token" format.\
 You can find your access token at $JENKINS_URL/me/configure\
 
 - ```HUBOT_JENKINS_URL```
+- ```HUBOT_JENKINS_PUBLIC_URL```
 - ```HUBOT_JENKINS_AUTH```
-- ```HUBOT_JENKINS_{1-N}_URL```
+- ```HUBOT_JENKINS_{1-N}_PUBLIC_URL```
 - ```HUBOT_JENKINS_{1-N}_AUTH```
 
 ### Commands

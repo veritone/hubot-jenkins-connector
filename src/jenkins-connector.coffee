@@ -6,8 +6,10 @@
 #
 # Configuration:
 #   HUBOT_JENKINS_URL
+#   HUBOT_JENKINS_PUBLIC_URL
 #   HUBOT_JENKINS_AUTH
 #   HUBOT_JENKINS_{1-N}_URL
+#   HUBOT_JENKINS_{1-N}_PUBLIC_URL
 #   HUBOT_JENKINS_{1-N}_AUTH
 #
 #   Auth should be in the "user:access-token" format.
@@ -54,6 +56,7 @@ class HubotMessenger
     "Jenkins says: #{message}"
 
   reply: (message, includePrefix = false) =>
+    @msg.message.thread_ts = @msg.message.rawMessage.ts
     @msg.reply if includePrefix then @_prefix(message) else message
 
   send: (message, includePrefix = false) =>
@@ -66,13 +69,15 @@ class HubotMessenger
 class JenkinsServer
   url: null
   auth: null
+  public_url: null
   _hasListed: false
   _jobs: null
   _querystring: null
 
-  constructor: (url, auth) ->
+  constructor: (url, auth, public_url) ->
     @url = url
     @auth = auth
+    @public_url = public_url
     @_jobs = []
     @_querystring = require 'querystring'
 
@@ -123,19 +128,20 @@ class JenkinsServerManager extends HubotMessenger
   servers: =>
     for server in @_servers
       jobs = server.getJobs()
-      message = "- #{server.url}"
+      message = "- #{server.public_url}"
       for job in jobs
         message += "\n-- #{job.name}"
       @send message
 
   _loadConfiguration: =>
-    @_addServer process.env.HUBOT_JENKINS_URL, process.env.HUBOT_JENKINS_AUTH
+    @_addServer process.env.HUBOT_JENKINS_URL, process.env.HUBOT_JENKINS_AUTH, process.env.HUBOT_JENKINS_PUBLIC_URL
 
     i = 1
     while true
       url = process.env["HUBOT_JENKINS_#{i}_URL"]
       auth = process.env["HUBOT_JENKINS_#{i}_AUTH"]
-      if url and auth then @_addServer(url, auth) else return
+      public_url = process.env["HUBOT_JENKINS_#{i}_PUBLIC_URL"]
+      if url and auth and public_url then @_addServer(url, auth, public_url) else return
       i += 1
 
   _addServer: (url, auth) =>
@@ -149,15 +155,15 @@ class HubotJenkinsPlugin extends HubotMessenger
 
   _serverManager: null
   _querystring: null
-  # stores jobs, across all servers, in flat list to support 'buildById'
+# stores jobs, across all servers, in flat list to support 'buildById'
   _jobList: []
   _params: null
-  # stores a function to be called after the initial 'list' has completed
+# stores a function to be called after the initial 'list' has completed
   _delayedFunction: null
 
 
-  # Init
-  # ----
+# Init
+# ----
 
   constructor: (msg, serverManager) ->
     super msg
@@ -181,8 +187,8 @@ class HubotJenkinsPlugin extends HubotMessenger
       ), 1000)
 
 
-  # Public API
-  # ----------
+# Public API
+# ----------
 
   buildById: =>
     return if not @_init(@buildById)
@@ -210,7 +216,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     job = @_getJobById()
     if not job
       @reply "I couldn't find that job. Try `jenkins list` to get a list."
-      return  
+      return
     @_setJob job
     @describe()
 
@@ -234,10 +240,10 @@ class HubotJenkinsPlugin extends HubotMessenger
     job = @_getJobById()
     if not job
       @reply "I couldn't find that job. Try `jenkins list` to get a list."
-      return  
+      return
     @_setJob job
     @last()
-	
+
   last: =>
     return if not @_init(@last)
     job = @_getJob()
@@ -268,12 +274,13 @@ class HubotJenkinsPlugin extends HubotMessenger
     aliasKey   = @msg.match[1]
     aliasValue = @msg.match[2]
     if aliases[aliasKey]
-      @msg.send "An alias already exists for #{aliasKey} and is mapped to #{aliasValue}.  Please use `jenkins remAlias #{aliasKey}` to remove this alias if you want to update the value."
+      @msg.send "An alias already exists for #{aliasKey} and is mapped to #{aliasValue}.  Please use `jenkins remAlias #{aliasKey}` to remove this alias if you want to update the
+ value."
       return
     aliases[aliasKey] = aliasValue
     @robot.brain.set 'jenkins_aliases', aliases
     @msg.send "'#{aliasKey}' is now an alias for '#{aliasValue}'"
-	
+
   remAlias: =>
     aliases    = @_getSavedAliases()
     aliasKey   = @msg.match[1]
@@ -283,21 +290,22 @@ class HubotJenkinsPlugin extends HubotMessenger
 
   setMessage: (message) =>
     super message
-    @_params = @msg.match[3]
+    initialParams =   if @msg.match[3] then @msg.match[3]+"&" else ""
+    @_params = initialParams+"slackUserName="+@msg.message.user.name+"&slackThreadTs="+@msg.message.rawMessage.ts
     @_serverManager.setMessage message
 
   setRobot: (robot) =>
     @robot = robot
 
-  # Utility Methods
-  # ---------------
+# Utility Methods
+# ---------------
 
   _addJobsToJobsList: (jobs, server, outputStatus = false) =>
     response = ""
     filter = new RegExp(@msg.match[2], 'i')
 
     for job in jobs
-      # Add the job to the @_jobList
+# Add the job to the @_jobList
       server.addJob(job)
       index = @_jobList.indexOf(job.name)
       if index == -1
@@ -306,7 +314,7 @@ class HubotJenkinsPlugin extends HubotMessenger
 
       state = if job.color == "red" then "FAIL" else "PASS"
       if filter.test job.name
-        response += "[#{index + 1}] #{state} #{job.name} on #{server.url}\n"
+        response += "[#{index + 1}] #{state} #{job.name} on #{server.public_url}\n"
 
     @send response if outputStatus
 
@@ -361,7 +369,7 @@ class HubotJenkinsPlugin extends HubotMessenger
 
     if escape then @_querystring.escape(job) else job
 
-  # Switch the index with the job name
+# Switch the index with the job name
   _getJobById: =>
     @_jobList[parseInt(@msg.match[1]) - 1]
 
@@ -393,8 +401,8 @@ class HubotJenkinsPlugin extends HubotMessenger
     @msg.match[1] = job
 
 
-  # Handlers
-  # --------
+# Handlers
+# --------
 
   _handleBuild: (err, res, body, server) =>
     if err
@@ -402,7 +410,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     else if 200 <= res.statusCode < 400 # Or, not an error code.
       job     = @_getJob(true)
       jobName = @_getJob(false)
-      @reply "(#{res.statusCode}) Build started for #{jobName} #{server.url}/job/#{job}"
+      @reply "(#{res.statusCode}) Build started for #{jobName} #{server.public_url}/job/#{job}"
     else if 400 == res.statusCode
       @build true
     else
@@ -475,8 +483,8 @@ class HubotJenkinsPlugin extends HubotMessenger
 
 module.exports = (robot) ->
 
-  # Factories
-  # ---------
+# Factories
+# ---------
 
   _serverManager = null
   serverManagerFactory = (msg) ->
@@ -509,7 +517,7 @@ module.exports = (robot) ->
 
   robot.respond /j(?:enkins)? describe (.*)/i, id: 'jenkins.describe', (msg) ->
     pluginFactory(msg).describe()
-	
+
   robot.respond /j(?:enkins)? d (\d+)/i, id: 'jenkins.d', (msg) ->
     pluginFactory(msg).describeById()
 
@@ -527,7 +535,7 @@ module.exports = (robot) ->
 
   robot.respond /j(?:enkins)? setAlias (.*), (.*)/i, id: 'jenkins.setAlias', (msg) ->
     pluginFactory(msg).setAlias()
-	
+
   robot.respond /j(?:enkins)? remAlias (.*)/i, id: 'jenkins.remAlias', (msg) ->
     pluginFactory(msg).remAlias()
 

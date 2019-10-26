@@ -1,7 +1,7 @@
 {
   "name": "hubot-jenkins-connector",
   "description": "Jenkins integration for Hubot with multiple server support. Forked from hubot-jenkins-enhanced",
-  "version": "0.0.1",
+  "version": "1.2.0",
   "author": "Olivier Truong<contact@oltruong.com>",
   "license": "MIT",
   "keywords": [
@@ -16,7 +16,8 @@
     "url": "https://github.com:oltruong/hubot-jenkins-connector/issues"
   },
   "dependencies": {
-    "coffee-script": "~1.6"
+    "coffee-script": "~1.6",
+    "mocha": "^6.2.2"
   },
   "devDependencies": {},
   "main": "index.coffee",

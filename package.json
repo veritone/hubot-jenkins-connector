@@ -1,7 +1,7 @@
 {
   "name": "hubot-jenkins-connector",
   "description": "Jenkins integration for Hubot with multiple server support. Forked from hubot-jenkins-enhanced",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Olivier Truong<contact@oltruong.com>",
   "license": "MIT",
   "keywords": [

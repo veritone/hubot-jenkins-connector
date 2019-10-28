@@ -144,8 +144,8 @@ class JenkinsServerManager extends HubotMessenger
       if url and auth and public_url then @_addServer(url, auth, public_url) else return
       i += 1
 
-  _addServer: (url, auth) =>
-    @_servers.push new JenkinsServer(url, auth)
+  _addServer: (url, auth, public_url) =>
+    @_servers.push new JenkinsServer(url, auth, public_url)
 
 
 class HubotJenkinsPlugin extends HubotMessenger

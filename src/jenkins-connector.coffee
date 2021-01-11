@@ -35,6 +35,8 @@
 # Contributor:
 #   zack-hable
 
+_releaseMatrix = process.env.RELEASE_MATRIX
+
 
 Array::where = (query) ->
   return [] if typeof query isnt "object"
@@ -169,7 +171,6 @@ class HubotJenkinsPlugin extends HubotMessenger
     super msg
     @_querystring   = require 'querystring'
     @_serverManager = serverManager
-    @_releaseMatrix = process.env.RELEASE_MATRIX
     @setMessage msg
 
   _init: (delayedFunction) =>

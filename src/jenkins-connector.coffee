@@ -136,8 +136,6 @@ class JenkinsServerManager extends HubotMessenger
   _loadConfiguration: =>
     @_addServer process.env.HUBOT_JENKINS_URL, process.env.HUBOT_JENKINS_AUTH, process.env.HUBOT_JENKINS_PUBLIC_URL
 
-    releaseMatrix = process.env.RELEASE_MATRIX
-
     i = 1
     while true
       url = process.env["HUBOT_JENKINS_#{i}_URL"]
@@ -171,6 +169,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     super msg
     @_querystring   = require 'querystring'
     @_serverManager = serverManager
+    @_releaseMatrix = process.env.RELEASE_MATRIX
     @setMessage msg
 
   _init: (delayedFunction) =>
@@ -228,7 +227,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     return if not @_init(@release)
     job = @_getJob(true)
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
-    path = "#{releaseMatrix[job]}/buildWithParameters?#{@_params}"
+    path = "#{_releaseMatrix[job]}/buildWithParameters?#{@_params}"
     path = if @_params then "job/#{job}/buildWithParameters?#{@_params}" else "job/#{job}/#{command}"
     @_requestFactorySingle server, path, @_handleRelease, "post"
 

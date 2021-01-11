@@ -211,6 +211,19 @@ class HubotJenkinsPlugin extends HubotMessenger
       return
     @_requestFactorySingle server, path, @_handleBuild, "post"
 
+  buildOrg: (buildOrgWithEmptyParameters) => 
+    return if not @_init(@buildOrg)
+    [org, job, branch] = @_getOrgJobBranch(true)
+    server = @_serverManager.getServerByJobName(org)
+    command = if buildWithEmptyParameters then "buildWithParameters" else "build"
+    path = if @_params then "job/#{org}/job/#{job}/job/#{branch}/buildWithParameters?#{@_params}" else "job/#{org}/job/#{job}/job/#{branch}/#{command}"
+    if !server
+      @msg.send "I couldn't find any servers with a job called #{@_getJob()}.  Try `jenkins servers` to get a list."
+      return
+    @_requestFactorySingle server, path, @_handleBuild, "post"
+    # robot.respond /jenkins build (.*) (.*) (.*)/, (msg) ->
+    # [_, org, job, branch] = msg.match
+
   describeById: =>
     return if not @_init(@describeById)
     job = @_getJobById()
@@ -369,6 +382,15 @@ class HubotJenkinsPlugin extends HubotMessenger
 
     if escape then @_querystring.escape(job) else job
 
+  _getOrgJobBranch: (escape = false) =>
+    org = @msg.match[1].trim()
+    job = @msg.match[2].trim()
+    branch = @msg.match[3].trim()
+
+    if escape then @_querystring.escape(org) else org
+    if escape then @_querystring.escape(job) else job
+    if escape then @_querystring.escape(branch) else branch
+
 # Switch the index with the job name
   _getJobById: =>
     @_jobList[parseInt(@msg.match[1]) - 1]
@@ -405,6 +427,18 @@ class HubotJenkinsPlugin extends HubotMessenger
 # --------
 
   _handleBuild: (err, res, body, server) =>
+    if err
+      @reply err
+    else if 200 <= res.statusCode < 400 # Or, not an error code.
+      job     = @_getJob(true)
+      jobName = @_getJob(false)
+      @reply "(#{res.statusCode}) Build started for #{jobName} #{server.public_url}/job/#{job}"
+    else if 400 == res.statusCode
+      @build true
+    else
+      @reply "Status #{res.statusCode} #{body}"
+
+  _handleBuildOrg: (err, res, body, server) =>
     if err
       @reply err
     else if 200 <= res.statusCode < 400 # Or, not an error code.
@@ -509,6 +543,9 @@ module.exports = (robot) ->
   robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.build', (msg) ->
     pluginFactory(msg).build false
 
+  robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.buildOrg', (msg) ->
+    pluginFactory(msg).buildOrg false
+
   robot.respond /j(?:enkins)? b (\d+)(, (.+))?/i, id: 'jenkins.b', (msg) ->
     pluginFactory(msg).buildById()
 
@@ -542,6 +579,7 @@ module.exports = (robot) ->
   robot.jenkins =
     aliases:  ((msg) -> pluginFactory(msg).listAliases())
     build:    ((msg) -> pluginFactory(msg).build())
+    buildOrg: ((msg) -> pluginFactory(msg).buildOrg())
     describe: ((msg) -> pluginFactory(msg).describe())
     getAlias: ((msg) -> pluginFactory(msg).getAlias())
     last:     ((msg) -> pluginFactory(msg).last())

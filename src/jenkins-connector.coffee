@@ -215,9 +215,8 @@ class HubotJenkinsPlugin extends HubotMessenger
     return if not @_init(@orgBuild)
     [org, job, branch] = @_getOrgJobBranch(true)
     server = @_serverManager.getServerByJobName(org)
-    command = if buildWithEmptyParameters then "buildWithParameters" else "build"
-    path = if @_params then "job/#{org}/job/#{job}/job/#{branch}/buildWithParameters?#{@_params}" else "job/#{org}/job/#{job}/job/#{branch}/#{command}"
-    @msg.send "#{path}"
+    command = "build"
+    path = "job/#{org}/job/#{job}/job/#{branch}/#{command}"
     if !server
       @msg.send "I couldn't find any servers with a job called #{org}.  Try `jenkins servers` to get a list."
       return

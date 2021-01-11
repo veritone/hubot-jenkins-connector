@@ -543,7 +543,7 @@ module.exports = (robot) ->
   robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.build', (msg) ->
     pluginFactory(msg).build false
 
-  robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.buildOrg', (msg) ->
+  robot.respond /j(?:enkins)? buildOrg ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.buildOrg', (msg) ->
     pluginFactory(msg).buildOrg false
 
   robot.respond /j(?:enkins)? b (\d+)(, (.+))?/i, id: 'jenkins.b', (msg) ->

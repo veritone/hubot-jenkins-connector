@@ -35,7 +35,7 @@
 # Contributor:
 #   zack-hable
 
-_releaseMatrix = process.env.RELEASE_MATRIX
+_releaseMatrix = JSON.parse(process.env.RELEASE_MATRIX)
 
 
 Array::where = (query) ->
@@ -227,6 +227,7 @@ class HubotJenkinsPlugin extends HubotMessenger
   release: (buildWithEmptyParameters) =>
     return if not @_init(@release)
     job = @_getJob(true)
+    server = @_serverManager.getServerByJobName(org)
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
     path = "#{_releaseMatrix[job]}/buildWithParameters?#{@_params}"
     path = if @_params then "job/#{job}/buildWithParameters?#{@_params}" else "job/#{job}/#{command}"

@@ -222,6 +222,14 @@ class HubotJenkinsPlugin extends HubotMessenger
       return
     @_requestFactorySingle server, path, @_handleOrgBuild, "post"
 
+  release: (buildWithEmptyParameters) =>
+    return if not @_init(@release)
+    job = @_getJob(true)
+    command = if buildWithEmptyParameters then "buildWithParameters" else "build"
+    path = "#{releaseMatrix[job]}/buildWithParameters?#{@_params}"
+    path = if @_params then "job/#{job}/buildWithParameters?#{@_params}" else "job/#{job}/#{command}"
+    @_requestFactorySingle server, path, @_handleRelease, "post"
+
   describeById: =>
     return if not @_init(@describeById)
     job = @_getJobById()
@@ -450,6 +458,16 @@ class HubotJenkinsPlugin extends HubotMessenger
     else
       @reply "Status #{res.statusCode} #{body}"
 
+  _handleRelease: (err, res, body, server) =>
+    if err
+      @reply err
+    else if 200 <= res.statusCode < 400 # Or, not an error code.
+      @reply success
+    else if 400 == res.statusCode
+      @build true
+    else
+      @reply "Status #{res.statusCode} #{body}"
+
   _handleDescribe: (err, res, body, server) =>
     if err
       @send err
@@ -540,11 +558,14 @@ module.exports = (robot) ->
   robot.respond /j(?:enkins)? aliases/i, id: 'jenkins.aliases', (msg) ->
     pluginFactory(msg).listAliases()
 
-  robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.build', (msg) ->
+  robot.respond /j(?:enkins)? runjob ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.build', (msg) ->
     pluginFactory(msg).build false
 
-  robot.respond /j(?:enkins)? orgBuild ([\w\.\-_]+) ([\w\.\-_]+) ([\w\.\-_]+)(, (.+))?/i, id: 'jenkins.orgBuild', (msg) ->
+  robot.respond /j(?:enkins)? build ([\w\.\-_]+) ([\w\.\-_]+) ([\w\.\-_]+)(, (.+))?/i, id: 'jenkins.orgBuild', (msg) ->
     pluginFactory(msg).orgBuild false
+
+  robot.respond /j(?:enkins)? release ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.release', (msg) ->
+    pluginFactory(msg).release false
 
   robot.respond /j(?:enkins)? b (\d+)(, (.+))?/i, id: 'jenkins.b', (msg) ->
     pluginFactory(msg).buildById()
@@ -578,8 +599,9 @@ module.exports = (robot) ->
 
   robot.jenkins =
     aliases:  ((msg) -> pluginFactory(msg).listAliases())
-    build:    ((msg) -> pluginFactory(msg).build())
-    orgBuild: ((msg) -> pluginFactory(msg).orgBuild())
+    runjob:    ((msg) -> pluginFactory(msg).build())
+    build: ((msg) -> pluginFactory(msg).orgBuild())
+    release: ((msg) -> pluginFactory(msg).release())
     describe: ((msg) -> pluginFactory(msg).describe())
     getAlias: ((msg) -> pluginFactory(msg).getAlias())
     last:     ((msg) -> pluginFactory(msg).last())

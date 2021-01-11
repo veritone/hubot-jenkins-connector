@@ -1,8 +1,8 @@
 {
   "name": "hubot-jenkins-connector",
-  "description": "Jenkins integration for Hubot with multiple server support. Forked from hubot-jenkins-enhanced",
-  "version": "1.2.1",
-  "author": "Olivier Truong<contact@oltruong.com>",
+  "description": "Jenkins integration for Hubot with multiple server support. Forked from hubot-jenkins-connector",
+  "version": "1.0.0",
+  "author": "Farye Nwede <fnwede@veritone.com>",
   "license": "MIT",
   "keywords": [
     "hubot",
@@ -10,10 +10,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:oltruong/hubot-jenkins-connector.git"
+    "url": "git@github.com:veritone/hubot-jenkins-connector.git"
   },
   "bugs": {
-    "url": "https://github.com:oltruong/hubot-jenkins-connector/issues"
+    "url": "https://github.com:veritone/hubot-jenkins-connector/issues"
   },
   "dependencies": {
     "coffee-script": "~1.6",

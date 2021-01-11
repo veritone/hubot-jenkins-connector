@@ -227,7 +227,7 @@ class HubotJenkinsPlugin extends HubotMessenger
   release: (buildWithEmptyParameters) =>
     return if not @_init(@release)
     job = @_getJob(true)
-    server = @_serverManager.getServerByJobName(org)
+    server = @_serverManager.getServerByJobName(job)
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
     path = "#{_releaseMatrix[job]}/buildWithParameters?#{@_params}"
     path = if @_params then "job/#{job}/buildWithParameters?#{@_params}" else "job/#{job}/#{command}"

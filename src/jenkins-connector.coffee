@@ -136,6 +136,8 @@ class JenkinsServerManager extends HubotMessenger
   _loadConfiguration: =>
     @_addServer process.env.HUBOT_JENKINS_URL, process.env.HUBOT_JENKINS_AUTH, process.env.HUBOT_JENKINS_PUBLIC_URL
 
+    releaseMatrix = process.env.RELEASE_MATRIX
+
     i = 1
     while true
       url = process.env["HUBOT_JENKINS_#{i}_URL"]

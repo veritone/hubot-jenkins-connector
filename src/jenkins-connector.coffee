@@ -211,8 +211,8 @@ class HubotJenkinsPlugin extends HubotMessenger
       return
     @_requestFactorySingle server, path, @_handleBuild, "post"
 
-  buildOrg: (buildOrgWithEmptyParameters) => 
-    return if not @_init(@buildOrg)
+  orgBuild: (buildWithEmptyParameters) => 
+    return if not @_init(@orgBuild)
     [org, job, branch] = @_getOrgJobBranch(true)
     server = @_serverManager.getServerByJobName(org)
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
@@ -543,8 +543,8 @@ module.exports = (robot) ->
   robot.respond /j(?:enkins)? build ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.build', (msg) ->
     pluginFactory(msg).build false
 
-  robot.respond /j(?:enkins)? buildOrg ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.buildOrg', (msg) ->
-    pluginFactory(msg).buildOrg false
+  robot.respond /j(?:enkins)? orgBuild ([\w\.\-_ ]+)(, (.+))?/i, id: 'jenkins.orgBuild', (msg) ->
+    pluginFactory(msg).orgBuild false
 
   robot.respond /j(?:enkins)? b (\d+)(, (.+))?/i, id: 'jenkins.b', (msg) ->
     pluginFactory(msg).buildById()
@@ -579,7 +579,7 @@ module.exports = (robot) ->
   robot.jenkins =
     aliases:  ((msg) -> pluginFactory(msg).listAliases())
     build:    ((msg) -> pluginFactory(msg).build())
-    buildOrg: ((msg) -> pluginFactory(msg).buildOrg())
+    orgBuild: ((msg) -> pluginFactory(msg).orgBuild())
     describe: ((msg) -> pluginFactory(msg).describe())
     getAlias: ((msg) -> pluginFactory(msg).getAlias())
     last:     ((msg) -> pluginFactory(msg).last())

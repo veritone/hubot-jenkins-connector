@@ -395,6 +395,8 @@ class HubotJenkinsPlugin extends HubotMessenger
     if escape then @_querystring.escape(job) else job
     if escape then @_querystring.escape(branch) else branch
 
+    return [org, job, branch]
+
 # Switch the index with the job name
   _getJobById: =>
     @_jobList[parseInt(@msg.match[1]) - 1]

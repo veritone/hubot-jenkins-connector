@@ -217,13 +217,11 @@ class HubotJenkinsPlugin extends HubotMessenger
     server = @_serverManager.getServerByJobName(org)
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
     path = if @_params then "job/#{org}/job/#{job}/job/#{branch}/buildWithParameters?#{@_params}" else "job/#{org}/job/#{job}/job/#{branch}/#{command}"
-    console.log "#{path}"
+    @msg.send "#{path}"
     if !server
       @msg.send "I couldn't find any servers with a job called #{org}.  Try `jenkins servers` to get a list."
       return
-    @_requestFactorySingle server, path, @_handleBuild, "post"
-    # robot.respond /jenkins build (.*) (.*) (.*)/, (msg) ->
-    # [_, org, job, branch] = msg.match
+    @_requestFactorySingle server, path, @_handleOrgBuild, "post"
 
   describeById: =>
     return if not @_init(@describeById)
@@ -441,13 +439,13 @@ class HubotJenkinsPlugin extends HubotMessenger
     else
       @reply "Status #{res.statusCode} #{body}"
 
-  _handleBuildOrg: (err, res, body, server) =>
+  _handleOrgBuild: (err, res, body, server) =>
     if err
       @reply err
     else if 200 <= res.statusCode < 400 # Or, not an error code.
-      job     = @_getJob(true)
+      [org,job,branch]     = @_getOrgJobBranch(true)
       jobName = @_getJob(false)
-      @reply "(#{res.statusCode}) Build started for #{jobName} #{server.public_url}/job/#{job}"
+      @reply "(#{res.statusCode}) Build started for #{jobName} #{server.public_url}/job/#{org}/job/#{job}/job/#{branch}"
     else if 400 == res.statusCode
       @build true
     else

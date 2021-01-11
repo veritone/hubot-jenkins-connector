@@ -221,7 +221,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     command = if buildWithEmptyParameters then "buildWithParameters" else "build"
     path = if @_params then "job/#{org}/job/#{job}/job/#{branch}/buildWithParameters?#{@_params}" else "job/#{org}/job/#{job}/job/#{branch}/#{command}"
     if !server
-      @msg.send "I couldn't find any servers with a job called #{@_getJob()}.  Try `jenkins servers` to get a list."
+      @msg.send "I couldn't find any servers with a job called #{org}.  Try `jenkins servers` to get a list."
       return
     @_requestFactorySingle server, path, @_handleBuild, "post"
     # robot.respond /jenkins build (.*) (.*) (.*)/, (msg) ->
@@ -386,6 +386,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     if escape then @_querystring.escape(job) else job
 
   _getOrgJobBranch: (escape = false) =>
+    console.log @msg
     org = @msg.match[1].trim()
     job = @msg.match[2].trim()
     branch = @msg.match[3].trim()

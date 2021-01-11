@@ -464,7 +464,7 @@ class HubotJenkinsPlugin extends HubotMessenger
     if err
       @reply err
     else if 200 <= res.statusCode < 400 # Or, not an error code.
-      @reply success
+      @reply "(#{res.statusCode}) Release started"
     else if 400 == res.statusCode
       @build true
     else
